@@ -1,0 +1,39 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:0.8'
+    }
+}
+apply plugin: 'shadow'
+
+repositories {
+    jcenter()
+    mavenLocal()
+    mavenCentral()
+}
+
+
+dependencies {
+    compile "javax.ws.rs:jsr311-api:1.1.1"
+    compile  "com.sun.jersey:jersey-core:1.19.4"
+    compile group: 'com.sun.jersey', name: 'jersey-json', version: '1.19.4'
+    compile "com.sun.jersey:jersey-client:1.19.4"
+    testCompile 'junit:junit:4.12'
+}
+
+
+jar {
+    baseName = 'client'
+    version = '1.0.0'
+    
+    manifest {
+        attributes "Main-Class": "transfer.client.RestClient"
+    }
+
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
