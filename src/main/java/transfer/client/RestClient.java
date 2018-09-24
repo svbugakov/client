@@ -4,6 +4,9 @@ import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 
 public class RestClient {
     private Client client;
@@ -11,13 +14,43 @@ public class RestClient {
     public RestClient() {
         client = Client.create();
     }
-    public static void main(String[] args) {
-        String acc = "40817000000000000001";
 
+    public static void main(String[] args) {
+        String command = args[0];
         RestClient rest = new RestClient();
-        //rest.getAccInfo(acc);
-        //rest.getAccInfoAll();
-        rest.transferMoney();
+        if (command.equals("getacc")) {
+            String acc = args[1];
+            if (checkFormat(acc))
+                rest.getAccInfo(acc);
+            else
+                System.err.println("Account have bad format");
+        } else if (command.equals("getaccs")) {
+            rest.getAccInfoAll();
+        } else if (command.equals("transfer")) {
+            if (!checkFormat(args[1])) {
+                System.err.println("Account {From} have bad format");
+                return;
+            }
+            if (!checkFormat(args[2])) {
+                System.err.println("Account {To} have bad format");
+                return;
+            }
+            Pattern p = Pattern.compile("^[0-9]{1,}$");
+            Matcher m = p.matcher(args[3]);
+            if (!m.matches()) {
+                System.err.println("Sum incorrect");
+                return;
+            }
+            rest.transferMoney(args[1], args[2], args[3]);
+        } else {
+            System.err.println("unknown command");
+        }
+    }
+
+    private static boolean checkFormat(String str) {
+        Pattern p = Pattern.compile("^[0-9]{20}$");
+        Matcher m = p.matcher(str);
+        return m.matches();
     }
 
     private void getAccInfo(String acc) {
@@ -40,9 +73,9 @@ public class RestClient {
         printResult(response);
     }
 
-    private void transferMoney() {
-        String request = "from=" + "40817000000000000001"+ "&to=" + "40817000000000000003"+
-                "&sum=" + "100" ;
+    private void transferMoney(String from, String to, String sum) {
+        String request = "from=" + from + "&to=" + to +
+                "&sum=" + sum;
 
         WebResource webResource = client
                 .resource("http://localhost:8084/rest/account/transfer");
